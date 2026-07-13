@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js">
+  </script>
+  <style>
+    body {
+      font-family: Arial;
+      background: #edf2f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .box {
+      width: 420px;
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, .15);
+      text-align: center;
+    }
+    #badge {
+      width: 360px;
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .20);
+      margin: auto;
+    }
+    .header {
+      background: #1e3c5c;
+      color: white;
+      padding: 25px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 30px;
+    }
+    .header p {
+      margin-top: 5px;
+      opacity: .9;
+    }
+    .body {
+      padding: 25px;
+      text-align: center;
+    }
+    .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #2c7da0;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 45px;
+      margin: auto;
+    }
+    .body h2 {
+      margin-top: 20px;
+    }
+    .ecole {
+      color: #666;
+      margin-bottom: 20px;
+    }
+    .photo {
+      width: 140px;
+      height: 140px;
+      border: 3px solid #222;
+      margin: auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      margin-top: 15px;
+      margin-bottom: 20px;
+    }
+    .identifiant {
+      background: #f4f4f4;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    .footer {
+      font-size: 13px;
+      color: #777;
+      margin-bottom: 25px;
+    }
+    #download {
+      background: #1e3c5c;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 18px;
+      width: 100%;
+    }
+    #download:hover {
+      background: #2c7da0;
+    }
+    .error {
+      color: #b91c1c;
+      font-weight: bold;
+    }
+    .info {
+      color: #1e3c5c;
+      font-size: 0.9rem;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box" id="box">
+    <h2>🔍 Recherche du badge...</h2>
+  </div>
+
+  <script>
+    // =============================================
+    // REKIPERE ID LA DIRÈKTEMAN DEPI URL A
+    // =============================================
+    function getParamId() {
+      const url = window.location.href;
+      const match = url.match(/[?&]id=([^&]+)/);
+      if (match) return match[1];
+      const params = new URLSearchParams(window.location.search);
+      return params.get("id");
+    }
+
+    const id = getParamId();
+
+    // =============================================
+    // SI PA GEN ID, MOUTRE MESAJ ERÈ
+    // =============================================
+    if (!id) {
+      document.getElementById("box").innerHTML = `
+        <h2 class="error">ID du badge manquant</h2>
+        <p>Veuillez utiliser le lien que vous avez reçu par e-mail.</p>
+        <p class="info">Contact : +509 41460815 / 41169823</p>
+      `;
+    } else {
+      // =============================================
+      // REKIPERE DONE YO DEPI APPS SCRIPT
+      // =============================================
+      // METE URL DEPLWAMAN APPS SCRIPT OU A (KI GEN doGet)
+      const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw01M7uorxNT_dOqxSAcBbKfAplSnVSq8iqUqHyG7S32QC7mi2VQO_MJImPMTTMZRHHGA/exec";
+
+      document.getElementById("box").innerHTML = `
+        <h2>🔍 Recherche du badge...</h2>
+        <p class="info">ID: <strong>${id}</strong></p>
+      `;
+
+      fetch(APP_SCRIPT_URL + "?id=" + encodeURIComponent(id))
+        .then(response => response.json())
+        .then(data => {
+          if (data.error || !data.nom) {
+            document.getElementById("box").innerHTML = `
+              <h2 class="error">Participant introuvable</h2>
+              <p>Vérifiez l'ID de votre badge.</p>
+              <p class="info">ID recherché: <strong>${id}</strong></p>
+            `;
+          } else {
+            afficherParticipant(data);
+          }
+        })
+        .catch(error => {
+          document.getElementById("box").innerHTML = `
+            <h2 class="error">Erreur de connexion</h2>
+            <p>Impossible de contacter le serveur.</p>
+          `;
+        });
+    }
+
+    // =============================================
+    // AFICHE BAD LA
+    // =============================================
+    function afficherParticipant(data) {
+      const box = document.getElementById("box");
+
+      box.innerHTML = `
+        <div id="badge">
+          <div class="header">
+            <h1>MilotFac 1.0</h1>
+            <p>Badge officiel</p>
+          </div>
+          <div class="body">
+            <div class="avatar">👤</div>
+            <h2>${data.prenom || ""} ${data.nom || ""}</h2>
+            <p class="ecole">${data.ecole || ""}</p>
+            <div class="photo">PHOTO</div>
+            <div class="identifiant">ID : ${data.id || ""}</div>
+            <div class="footer">Ce badge est la propriété de MilotFac</div>
+            <button id="download">📥 Télécharger mon badge</button>
+          </div>
+        </div>
+      `;
+
+      document.getElementById("download").addEventListener("click", function() {
+        const bouton = this;
+        bouton.style.display = "none";
+
+        html2canvas(document.getElementById("badge"), {
+          scale: 3,
+          backgroundColor: "#ffffff",
+          useCORS: true
+        }).then(function(canvas) {
+          bouton.style.display = "block";
+          const lien = document.createElement("a");
+          lien.download = (data.id || "badge") + ".png";
+          lien.href = canvas.toDataURL("image/png");
+          lien.click();
+        }).catch(function(err) {
+          bouton.style.display = "block";
+          alert("Erreur lors du téléchargement: " + err.message);
+        });
+      });
+    }
+  </script>
+</body>
+
+</html>
